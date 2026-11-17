@@ -1,10 +1,643 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<body>
-<h1>
-<marquee>
-  This Site Under Construction
-</marquee>
-</h1>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NF Fire Safety Security Services</title>
+  <meta name="description" content="NF Fire Safety Security Services — Fire Extinguisher Refilling Management System. Manage party records, refilling schedules, due dates and notifications." />
+  <meta name="theme-color" content="#1a73e8" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/notifications.css" />
+  <link rel="stylesheet" href="assets/css/reports.css" />
 </head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE LOADER (GOOGLE STYLE)
+══════════════════════════════════════════════════════ -->
+<div id="pageLoader" class="page-loader" role="dialog" aria-modal="true" aria-label="Connecting to server">
+  <div class="loader-content">
+    <svg class="google-spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+      <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+    </svg>
+    <div class="loader-message">Connecting To Server Please wait...</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     OFFLINE STATUS BANNER / OVERLAY
+══════════════════════════════════════════════════════ -->
+<div id="offlineOverlay" class="offline-overlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineDesc">
+  <div class="offline-box">
+    <span class="material-icons">wifi_off</span>
+    <h3 id="offlineTitle" class="offline-title">Connection Disconnected</h3>
+    <p id="offlineDesc" class="offline-desc">Your internet connection is currently offline. Actions have been disabled. We will reconnect automatically once internet is restored.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════════════ -->
+<nav class="navbar" role="navigation" aria-label="Main Navigation">
+
+  <!-- Hamburger (mobile) -->
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- Brand -->
+  <div class="navbar-brand">
+    <div class="navbar-logo" aria-hidden="true">🔥</div>
+    <div>
+      <div class="navbar-title">NF <span>Fire Safety</span></div>
+    </div>
+  </div>
+
+  <!-- Desktop Nav Links -->
+  <nav class="nav-links" aria-label="Sections">
+    <button class="nav-link active" data-section="recordsSection" id="navRecords" aria-current="page">
+      <span class="material-icons">inventory_2</span> Records
+    </button>
+    <button class="nav-link" data-section="reportsSection" id="navReports">
+      <span class="material-icons">analytics</span> Reports
+    </button>
+  </nav>
+
+  <div class="navbar-spacer"></div>
+
+  <!-- Live Date -->
+  <div class="navbar-date" id="navDateDisplay" aria-live="polite"></div>
+
+  <!-- Notification Bell -->
+  <button class="notif-btn" id="notifBell" aria-label="Notifications" title="View Notifications">
+    <span class="material-icons">notifications</span>
+    <span class="notif-badge" id="notifBadge" aria-label="notification count">0</span>
+  </button>
+
+</nav>
+
+<!-- Mobile Nav Overlay -->
+<div class="mobile-nav-overlay" id="mobileOverlay" aria-hidden="true"></div>
+
+<!-- Mobile Nav Drawer -->
+<div id="mobileNav" style="
+  position:fixed;top:0;left:0;height:100vh;width:220px;
+  background:#fff;border-right:1px solid #dadce0;
+  padding:70px 12px 20px;
+  transform:translateX(-100%);transition:.3s cubic-bezier(.4,0,.2,1);
+  z-index:95;box-shadow:4px 0 20px rgba(0,0,0,.12);
+" aria-label="Mobile menu">
+  <button class="mobile-nav-link nav-link" data-section="recordsSection" style="width:100%;margin-bottom:4px;border-radius:8px">
+    <span class="material-icons">inventory_2</span> Records
+  </button>
+  <button class="mobile-nav-link nav-link" data-section="reportsSection" style="width:100%;border-radius:8px">
+    <span class="material-icons">analytics</span> Reports
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TOAST CONTAINER
+══════════════════════════════════════════════════════ -->
+<div class="notif-toast-container" id="toastContainer" aria-live="assertive" aria-atomic="false"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     NOTIFICATION DRAWER
+══════════════════════════════════════════════════════ -->
+<div class="notif-drawer-overlay" id="notifDrawerOverlay" role="dialog" aria-modal="true" aria-label="Notifications">
+  <div class="notif-drawer" role="region">
+
+    <!-- Header -->
+    <div class="notif-drawer-header">
+      <span class="material-icons">notifications_active</span>
+      <span class="notif-drawer-title">Notifications</span>
+      <span class="notif-count-badge" id="notifCountBadge">0</span>
+      <button class="notif-drawer-close" onclick="closeNotifDrawer()" aria-label="Close notifications" title="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="notif-drawer-search">
+      <div class="search-box">
+        <span class="material-icons">search</span>
+        <input type="text" class="search-input" id="notifSearchInput"
+               placeholder="Search by party name…" aria-label="Search notifications" style="width:100%" />
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="notif-filter-row" role="group" aria-label="Notification filters">
+        <button class="notif-filter-btn active" data-filter="all" aria-pressed="true">All</button>
+        <button class="notif-filter-btn" data-filter="party" aria-pressed="false">Party</button>
+        <button class="notif-filter-btn" data-filter="day"   aria-pressed="false">Day</button>
+        <button class="notif-filter-btn" data-filter="month" aria-pressed="false">Month</button>
+        <button class="notif-filter-btn" data-filter="range" aria-pressed="false">Range</button>
+      </div>
+
+      <!-- Dynamic filter inputs -->
+      <div class="notif-filter-inputs" id="notifFilterInputs">
+        <div id="notifPartyWrap" style="display:none;flex:1">
+          <input type="text" id="notifPartyFilter" placeholder="Party name…" style="width:100%;padding:6px 10px;border:1px solid #dadce0;border-radius:4px;font-size:13px;outline:none" aria-label="Filter by party name" />
+        </div>
+        <div id="notifDayWrap" style="display:none;flex:1">
+          <input type="date" id="notifDayFilter" aria-label="Filter by day" style="flex:1" />
+        </div>
+        <div id="notifMonthWrap" style="display:none;flex:1">
+          <input type="month" id="notifMonthFilter" aria-label="Filter by month" style="flex:1" />
+        </div>
+        <div id="notifRangeWrap" style="display:none;gap:6px;align-items:center;flex:1">
+          <input type="date" id="notifRangeFrom" aria-label="From date" style="flex:1" />
+          <span style="color:#5f6368;font-size:12px">to</span>
+          <input type="date" id="notifRangeTo"   aria-label="To date" style="flex:1" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification List -->
+    <div class="notif-drawer-body" id="notifList" role="list">
+      <div class="notif-empty">
+        <span class="material-icons">notifications_none</span>
+        <p>No upcoming notifications.</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="notif-drawer-actions">
+      <button class="btn btn-ghost btn-sm" onclick="clearAllNotifications()" title="Dismiss all notifications">
+        <span class="material-icons">clear_all</span> Clear All
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="closeNotifDrawer()">
+        <span class="material-icons">close</span> Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════ -->
+<main class="main-content" id="mainContent">
+
+  <!-- ── RECORDS SECTION ────────────────────────────────────────────────── -->
+  <section class="page-section active" id="recordsSection" aria-label="Records">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Fire Extinguisher Records</h1>
+        <p class="page-subtitle">Manage party refilling records and due dates</p>
+      </div>
+      <button class="btn btn-primary" id="addRecordBtn" aria-label="Add new record">
+        <span class="material-icons">add</span> Add Record
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" role="region" aria-label="Summary statistics">
+      <div class="stat-card">
+        <div class="stat-icon blue"><span class="material-icons">inventory_2</span></div>
+        <div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Records</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><span class="material-icons">schedule</span></div>
+        <div>
+          <div class="stat-value" id="statDueSoon">—</div>
+          <div class="stat-label">Due This Week</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><span class="material-icons">warning</span></div>
+        <div>
+          <div class="stat-value" id="statOverdue">—</div>
+          <div class="stat-label">Overdue</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><span class="material-icons">event</span></div>
+        <div>
+          <div class="stat-value" id="statThisMonth">—</div>
+          <div class="stat-label">This Month</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Records Table Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="search-box">
+          <span class="material-icons">search</span>
+          <input type="text" class="search-input" id="recordSearchInput"
+                 placeholder="Search by party, invoice, SR no…" aria-label="Search records" />
+        </div>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline btn-sm" onclick="loadRecords()" title="Refresh records" aria-label="Refresh">
+          <span class="material-icons">refresh</span> Refresh
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <table aria-label="Records table">
+          <thead>
+            <tr>
+              <th>SR No</th>
+              <th>Invoice No</th>
+              <th>Date</th>
+              <th>Party Name</th>
+              <th>Refilling Date</th>
+              <th>Due Date</th>
+              <th>Note</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordsTableBody">
+            <tr>
+              <td colspan="8">
+                <div class="spinner-wrap"><div class="spinner"></div></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── REPORTS SECTION ────────────────────────────────────────────────── -->
+  <section class="page-section" id="reportsSection" aria-label="Reports">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">Filter, preview and export refilling records</p>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="report-filters" role="region" aria-label="Report filters">
+      <div class="report-filters-title">
+        <span class="material-icons">filter_list</span> Filter Records
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs" role="group" aria-label="Filter type">
+        <button class="filter-tab active" data-filter="all">
+          <span class="material-icons">list</span> All Records
+        </button>
+        <button class="filter-tab" data-filter="party">
+          <span class="material-icons">person</span> By Party
+        </button>
+        <button class="filter-tab" data-filter="day">
+          <span class="material-icons">today</span> Day Wise
+        </button>
+        <button class="filter-tab" data-filter="month">
+          <span class="material-icons">calendar_month</span> Month Wise
+        </button>
+        <button class="filter-tab" data-filter="range">
+          <span class="material-icons">date_range</span> Custom Range
+        </button>
+      </div>
+
+      <!-- Filter Inputs -->
+      <div class="filter-inputs-area" id="reportInputsArea">
+
+        <div class="filter-field" id="rPartyField" style="display:none;flex:1;min-width:200px">
+          <label for="rPartyInput">Party Name</label>
+          <input type="text" id="rPartyInput" placeholder="Type party name…" aria-label="Filter by party name" />
+        </div>
+
+        <div class="filter-field" id="rDayField" style="display:none">
+          <label for="rDayInput">Select Day</label>
+          <input type="date" id="rDayInput" aria-label="Filter by day" />
+        </div>
+
+        <div class="filter-field" id="rMonthField" style="display:none">
+          <label for="rMonthInput">Select Month</label>
+          <input type="month" id="rMonthInput" aria-label="Filter by month" />
+        </div>
+
+        <div id="rRangeFields" style="display:none;display:none;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="filter-field">
+            <label for="rRangeFrom">From Date</label>
+            <input type="date" id="rRangeFrom" aria-label="From date" />
+          </div>
+          <div class="filter-field">
+            <label for="rRangeTo">To Date</label>
+            <input type="date" id="rRangeTo" aria-label="To date" />
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-primary btn-sm" id="reportApplyBtn">
+            <span class="material-icons">search</span> Apply
+          </button>
+          <button class="btn btn-ghost btn-sm" id="reportResetBtn">
+            <span class="material-icons">clear</span> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report Preview -->
+    <div class="report-preview">
+      <div class="report-preview-header">
+        <div>
+          <div class="report-preview-title">Report Preview</div>
+          <div class="report-meta" id="reportMeta">All Records</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="report-count" id="reportCount">0 record(s)</span>
+          <div class="report-export-btns">
+            <button class="btn btn-sm btn-csv" id="exportCsvBtn" title="Export as CSV">
+              <span class="material-icons">table_chart</span> CSV
+            </button>
+            <button class="btn btn-sm btn-pdf" id="exportPdfBtn" title="Export as PDF">
+              <span class="material-icons">picture_as_pdf</span> PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table aria-label="Report preview table">
+          <thead>
+            <tr>
+              <th>SR No</th>
+              <th>Invoice No</th>
+              <th>Date</th>
+              <th>Party Name</th>
+              <th>Refilling Date</th>
+              <th>Due Date</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody">
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <span class="material-icons">analytics</span>
+                  <p>Select a filter and click <strong>Apply</strong> to preview the report.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════
+     HIDDEN PRINT AREA (PDF)
+══════════════════════════════════════════════════════ -->
+<div id="printArea" class="print-area" aria-hidden="true"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     ADD / EDIT RECORD MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="recordModalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="recordModal">
+
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Add New Record</h2>
+      <button class="modal-close" onclick="closeRecordModal()" aria-label="Close dialog">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form id="recordForm" novalidate autocomplete="off">
+
+        <!-- Row 1: SR No + Invoice No -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f_sr_no">SR No</label>
+            <input type="text" class="form-control" id="f_sr_no" name="SR_No"
+                   placeholder="Auto-generated" readonly aria-readonly="true" title="SR No is auto-generated monthly" />
+            <span class="form-hint">Auto: MM/YYYY-XXX (resets each month)</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f_invoice_no">Invoice No</label>
+            <input type="text" class="form-control" id="f_invoice_no" name="Invoice_No"
+                   placeholder="e.g. INV-2026-001" aria-label="Invoice number" />
+          </div>
+        </div>
+
+        <!-- Row 2: Date + Party Name -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f_date">Date <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+            <input type="date" class="form-control" id="f_date" name="Date" required aria-required="true" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f_party_name">Party Name <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+            <input type="text" class="form-control" id="f_party_name" name="Party_Name"
+                   placeholder="Enter party / customer name" required aria-required="true" />
+            <span class="form-error" id="partyNameError">Party name is required</span>
+          </div>
+        </div>
+
+        <!-- Row 3: Refilling Date + Due Date -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="f_refilling_date">Refilling Date <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+            <input type="date" class="form-control" id="f_refilling_date" name="Refilling_Date"
+                   required aria-required="true" />
+            <span class="form-hint">Due Date auto-fills (+1 year −1 day)</span>
+            <span class="form-error">Refilling date is required</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f_due_date">Due Date <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+            <input type="date" class="form-control" id="f_due_date" name="Due_Date"
+                   required aria-required="true" />
+            <span class="form-hint">Customize if needed</span>
+            <span class="form-error">Due date is required</span>
+          </div>
+        </div>
+
+        <!-- Row 4: Note -->
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label" for="f_note">Note</label>
+            <textarea class="form-control" id="f_note" name="Note" rows="2"
+                      placeholder="Optional remarks…" aria-label="Note or remarks"></textarea>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRecordModal()" type="button">
+        <span class="material-icons">close</span> Cancel
+      </button>
+      <button class="btn btn-primary" type="submit" form="recordForm" id="saveRecordBtn">
+        <span class="material-icons">save</span> Save Record
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     VIEW RECORD MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="viewModalOverlay" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+  <div class="modal" style="max-width:580px">
+
+    <div class="modal-header">
+      <h2 class="modal-title" id="viewModalTitle">
+        <span class="material-icons" style="font-size:20px;vertical-align:middle;margin-right:6px;color:var(--primary)">visibility</span>
+        Record Details
+      </h2>
+      <button class="modal-close" onclick="closeViewModal()" aria-label="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body" style="padding:20px 24px">
+
+      <!-- Party Header Banner -->
+      <div class="view-party-header">
+        <div class="view-party-avatar" id="view_party_avatar">🏢</div>
+        <div style="min-width:0;flex:1">
+          <div class="view-party-name" id="view_party_name">—</div>
+          <div class="view-party-sr" id="view_sr_no_sub">SR: —</div>
+        </div>
+        <div style="flex-shrink:0">
+          <span class="chip chip-blue" id="view_due_status">—</span>
+        </div>
+      </div>
+
+      <!-- Detail Grid -->
+      <div class="view-detail-grid">
+
+        <div class="view-detail-card">
+          <div class="view-detail-label">
+            <span class="material-icons">tag</span> SR No
+          </div>
+          <div class="view-detail-value"><span class="sr-badge" id="view_sr_no">—</span></div>
+        </div>
+
+        <div class="view-detail-card">
+          <div class="view-detail-label">
+            <span class="material-icons">receipt</span> Invoice No
+          </div>
+          <div class="view-detail-value" id="view_invoice_no">—</div>
+        </div>
+
+        <div class="view-detail-card">
+          <div class="view-detail-label">
+            <span class="material-icons">calendar_today</span> Date
+          </div>
+          <div class="view-detail-value" id="view_date">—</div>
+        </div>
+
+        <div class="view-detail-card">
+          <div class="view-detail-label">
+            <span class="material-icons">fire_extinguisher</span> Refilling Date
+          </div>
+          <div class="view-detail-value" id="view_refilling_date">—</div>
+        </div>
+
+        <div class="view-detail-card" style="grid-column:1/-1">
+          <div class="view-detail-label">
+            <span class="material-icons">event_busy</span> Due Date
+          </div>
+          <div class="view-detail-value" id="view_due_date" style="font-size:16px">—</div>
+        </div>
+
+      </div>
+
+      <!-- Note -->
+      <div>
+        <div class="view-detail-label" style="margin-bottom:8px">
+          <span class="material-icons">notes</span> Note / Remarks
+        </div>
+        <div class="view-note-box" id="view_note">No notes added.</div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeViewModal()">
+        <span class="material-icons">close</span> Close
+      </button>
+      <button class="btn btn-outline" id="viewEditBtn">
+        <span class="material-icons">edit</span> Edit Record
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay confirm-dialog" id="confirmModalOverlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="confirmTitle">Delete Record</h2>
+      <button class="modal-close" onclick="closeConfirmModal()" aria-label="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <span class="material-icons confirm-icon" aria-hidden="true">delete_forever</span>
+      <p style="font-size:15px;color:var(--text-secondary);margin-top:8px">
+        Are you sure you want to delete the record for<br/>
+        <strong id="confirmPartyName" style="color:var(--text-primary)"></strong>?<br/>
+        <span style="font-size:13px;color:var(--danger)">This action cannot be undone.</span>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeConfirmModal()">
+        <span class="material-icons">cancel</span> Cancel
+      </button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">
+        <span class="material-icons">delete</span> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCRIPTS (order matters)
+══════════════════════════════════════════════════════ -->
+<script src="assets/api/configapi.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/notifications.js"></script>
+<script src="assets/js/records.js"></script>
+<script src="assets/js/reports.js"></script>
+
+<!-- Mobile nav open/close via CSS toggle -->
+<script>
+  // Sync mobile nav open state with hamburger
+  const _mobileNav = document.getElementById('mobileNav');
+  const _hamburger  = document.getElementById('hamburger');
+  if (_mobileNav) {
+    const observer = new MutationObserver(() => {
+      const open = _mobileNav.classList.contains('open');
+      _mobileNav.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
+      if (_hamburger) _hamburger.setAttribute('aria-expanded', open);
+    });
+    observer.observe(_mobileNav, { attributes: true, attributeFilter: ['class'] });
+  }
+</script>
+
+</body>
 </html>
