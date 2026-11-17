@@ -1,0 +1,242 @@
+/* ==========================================================================
+   reports.css — NF Fire Safety
+   Reports Section + Print / PDF Styles
+   ========================================================================== */
+
+/* ── Filter Bar ────────────────────────────────────────────────────────── */
+.report-filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.report-filters-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.report-filters-title .material-icons { font-size: 16px; }
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.filter-tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.filter-tab:hover { background: var(--bg-secondary); border-color: #aaa; }
+.filter-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(26,115,232,.35);
+}
+.filter-tab .material-icons { font-size: 15px; }
+
+.filter-inputs-area {
+  display: none;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.filter-inputs-area.show { display: flex; }
+.filter-field { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+.filter-field label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+.filter-field input,
+.filter-field select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+.filter-field input:focus,
+.filter-field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.15);
+}
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Report Preview ────────────────────────────────────────────────────── */
+.report-preview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.report-preview-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--bg-secondary);
+}
+.report-preview-title {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.report-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.report-export-btns { display: flex; gap: 8px; }
+.report-count {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── Print PDF Styles ──────────────────────────────────────────────────── */
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 11px;
+    color: #000;
+  }
+
+  .pdf-header {
+    text-align: center;
+    border-bottom: 2px solid #1a73e8;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .pdf-company-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a73e8;
+    letter-spacing: 1px;
+  }
+  .pdf-company-sub {
+    font-size: 11px;
+    color: #555;
+    margin-top: 2px;
+  }
+  .pdf-report-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 6px;
+    color: #202124;
+  }
+  .pdf-period {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a73e8;
+    margin-top: 2px;
+  }
+  .pdf-generated {
+    font-size: 10px;
+    color: #777;
+    margin-top: 2px;
+  }
+
+  .pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    page-break-inside: auto;
+  }
+  .pdf-table thead th {
+    background: #1a73e8 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    padding: 8px 10px;
+    font-size: 10px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #1a73e8;
+  }
+  .pdf-table tbody tr:nth-child(even) {
+    background: #f1f3f4 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .pdf-table tbody td {
+    padding: 7px 10px;
+    font-size: 10px;
+    border: 1px solid #dadce0;
+    vertical-align: middle;
+  }
+  .pdf-footer {
+    margin-top: 16px;
+    border-top: 1px solid #dadce0;
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: #999;
+  }
+  .pdf-footer-total {
+    font-weight: 700;
+    color: #333;
+  }
+}
+
+/* Print area hidden from screen */
+.print-area { display: none; }
+
+/* ── Export Buttons ────────────────────────────────────────────────────── */
+.btn-csv {
+  background: var(--success);
+  color: #fff;
+  border: none;
+}
+.btn-csv:hover { background: #2d8e47; }
+.btn-pdf {
+  background: #ea4335;
+  color: #fff;
+  border: none;
+}
+.btn-pdf:hover { background: #c62828; }
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .filter-tabs { gap: 6px; }
+  .filter-tab { padding: 5px 12px; font-size: 12px; }
+  .report-preview-header { flex-direction: column; align-items: flex-start; }
+}
